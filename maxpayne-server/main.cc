@@ -28,5 +28,6 @@ int main() {
     printf("                  server initialized\n");
     printf("--------------------------------------------------------\n");
     printf("         Server running! Press ENTER to stop.\n");
+    getchar();
     return 0;
 }

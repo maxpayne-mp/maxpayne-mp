@@ -17,96 +17,163 @@
 */
 
 #include <windows.h>
-#include <tlhelp32.h>
-#include <iostream>
+#include <cstdio>
+#include <string>
 
-DWORD GetProcId(const char* name) {
-    DWORD pid = 0;
-    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if (snap == INVALID_HANDLE_VALUE) return 0;
-
-    PROCESSENTRY32W entry;
-    entry.dwSize = sizeof(entry);
-
-    if (Process32FirstW(snap, &entry)) {
-        do {
-            char exeFile[260];
-            WideCharToMultiByte(CP_ACP, 0, entry.szExeFile, -1, exeFile, 260, NULL, NULL);
-            if (!_stricmp(exeFile, name)) {
-                pid = entry.th32ProcessID;
-                break;
-            }
-        } while (Process32NextW(snap, &entry));
-    }
-    CloseHandle(snap);
-    return pid;
-}
-
-bool Inject(DWORD pid, const char* dll) {
-    HANDLE p = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
-    if (!p) return false;
-
-    LPVOID mem = VirtualAllocEx(p, NULL, strlen(dll) + 1, MEM_COMMIT, PAGE_READWRITE);
-    if (!mem) {
-        CloseHandle(p);
-        return false;
-    }
-
-    WriteProcessMemory(p, mem, dll, strlen(dll) + 1, NULL);
-
-    HANDLE t = CreateRemoteThread(p, NULL, 0,
-        (LPTHREAD_START_ROUTINE)GetProcAddress(GetModuleHandleA("kernel32"), "LoadLibraryA"),
-        mem, 0, NULL);
-
-    if (!t) {
-        VirtualFreeEx(p, mem, 0, MEM_RELEASE);
-        CloseHandle(p);
-        return false;
-    }
-
-    WaitForSingleObject(t, INFINITE);
-    CloseHandle(t);
-    VirtualFreeEx(p, mem, 0, MEM_RELEASE);
-    CloseHandle(p);
-    return true;
+static void PrintLastError(const char* operation) {
+    const DWORD error = GetLastError();
+    char message[512] = {};
+    FormatMessageA(
+        FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        nullptr,
+        error,
+        0,
+        message,
+        sizeof(message),
+        nullptr);
+    printf("ERRO: %s falhou (codigo %lu): %s\n", operation, error, message);
 }
 
 int main() {
-    char dllPath[MAX_PATH];
-    char exePath[MAX_PATH];
-
-    char currentDir[MAX_PATH];
-    GetCurrentDirectoryA(MAX_PATH, currentDir);
-
-    strcpy_s(exePath, currentDir);
-    strcat_s(exePath, "\\..\\MaxPayne.exe");
-
-    strcpy_s(dllPath, currentDir);
-    strcat_s(dllPath, "\\maxpayne-mp.dll");
-
-    STARTUPINFOA si = { sizeof(si) };
-    PROCESS_INFORMATION pi;
-
-    if (!CreateProcessA(exePath, NULL, NULL, NULL, FALSE,
-        CREATE_SUSPENDED, NULL, NULL, &si, &pi)) {
+    char launcherPath[MAX_PATH] = {};
+    const DWORD pathLength = GetModuleFileNameA(nullptr, launcherPath, MAX_PATH);
+    if (pathLength == 0 || pathLength >= MAX_PATH) {
+        PrintLastError("GetModuleFileNameA");
         return 1;
     }
 
-    LPVOID mem = VirtualAllocEx(pi.hProcess, NULL, strlen(dllPath) + 1,
-        MEM_COMMIT, PAGE_READWRITE);
-    WriteProcessMemory(pi.hProcess, mem, dllPath, strlen(dllPath) + 1, NULL);
+    std::string launcherDirectory(launcherPath, pathLength);
+    const size_t separator = launcherDirectory.find_last_of("\\/");
+    if (separator == std::string::npos) {
+        printf("ERRO: nao foi possivel determinar a pasta do launcher.\n");
+        return 1;
+    }
+    launcherDirectory.resize(separator);
 
-    HANDLE t = CreateRemoteThread(pi.hProcess, NULL, 0,
-        (LPTHREAD_START_ROUTINE)GetProcAddress(GetModuleHandleA("kernel32"), "LoadLibraryA"),
-        mem, 0, NULL);
+    const std::string dllPath = launcherDirectory + "\\maxpayne-mp.dll";
+    char gameDirectoryBuffer[MAX_PATH] = {};
+    if (!GetFullPathNameA(
+        (launcherDirectory + "\\..").c_str(),
+        MAX_PATH,
+        gameDirectoryBuffer,
+        nullptr)) {
+        PrintLastError("GetFullPathNameA");
+        return 1;
+    }
+    const std::string gameDirectory = gameDirectoryBuffer;
+    const std::string exePath = gameDirectory + "\\maxpayne.exe";
 
-    WaitForSingleObject(t, INFINITE);
-    CloseHandle(t);
-    VirtualFreeEx(pi.hProcess, mem, 0, MEM_RELEASE);
+    if (GetFileAttributesA(dllPath.c_str()) == INVALID_FILE_ATTRIBUTES) {
+        PrintLastError("encontrar maxpayne-mp.dll");
+        return 1;
+    }
+    if (GetFileAttributesA(exePath.c_str()) == INVALID_FILE_ATTRIBUTES) {
+        PrintLastError("encontrar maxpayne.exe");
+        return 1;
+    }
 
-    ResumeThread(pi.hThread);
-    CloseHandle(pi.hThread);
-    CloseHandle(pi.hProcess);
+    STARTUPINFOA startupInfo = { sizeof(startupInfo) };
+    PROCESS_INFORMATION processInfo = {};
+    if (!CreateProcessA(
+        exePath.c_str(),
+        nullptr,
+        nullptr,
+        nullptr,
+        FALSE,
+        0,
+        nullptr,
+        gameDirectory.c_str(),
+        &startupInfo,
+        &processInfo)) {
+        PrintLastError("CreateProcessA");
+        return 1;
+    }
+
+    Sleep(2000);
+
+    const SIZE_T dllPathSize = dllPath.size() + 1;
+    LPVOID remotePath = VirtualAllocEx(
+        processInfo.hProcess,
+        nullptr,
+        dllPathSize,
+        MEM_RESERVE | MEM_COMMIT,
+        PAGE_READWRITE);
+    if (!remotePath) {
+        PrintLastError("VirtualAllocEx");
+        TerminateProcess(processInfo.hProcess, 1);
+        CloseHandle(processInfo.hThread);
+        CloseHandle(processInfo.hProcess);
+        return 1;
+    }
+
+    SIZE_T bytesWritten = 0;
+    if (!WriteProcessMemory(
+        processInfo.hProcess,
+        remotePath,
+        dllPath.c_str(),
+        dllPathSize,
+        &bytesWritten) ||
+        bytesWritten != dllPathSize) {
+        PrintLastError("WriteProcessMemory");
+        VirtualFreeEx(processInfo.hProcess, remotePath, 0, MEM_RELEASE);
+        TerminateProcess(processInfo.hProcess, 1);
+        CloseHandle(processInfo.hThread);
+        CloseHandle(processInfo.hProcess);
+        return 1;
+    }
+
+    const auto loadLibrary = reinterpret_cast<LPTHREAD_START_ROUTINE>(
+        GetProcAddress(GetModuleHandleA("kernel32.dll"), "LoadLibraryA"));
+    if (!loadLibrary) {
+        PrintLastError("GetProcAddress(LoadLibraryA)");
+        VirtualFreeEx(processInfo.hProcess, remotePath, 0, MEM_RELEASE);
+        TerminateProcess(processInfo.hProcess, 1);
+        CloseHandle(processInfo.hThread);
+        CloseHandle(processInfo.hProcess);
+        return 1;
+    }
+
+    HANDLE remoteThread = CreateRemoteThread(
+        processInfo.hProcess,
+        nullptr,
+        0,
+        loadLibrary,
+        remotePath,
+        0,
+        nullptr);
+    if (!remoteThread) {
+        PrintLastError("CreateRemoteThread");
+        VirtualFreeEx(processInfo.hProcess, remotePath, 0, MEM_RELEASE);
+        TerminateProcess(processInfo.hProcess, 1);
+        CloseHandle(processInfo.hThread);
+        CloseHandle(processInfo.hProcess);
+        return 1;
+    }
+
+    WaitForSingleObject(remoteThread, INFINITE);
+    DWORD loadResult = 0;
+    const bool gotExitCode = GetExitCodeThread(remoteThread, &loadResult) != FALSE;
+    CloseHandle(remoteThread);
+    VirtualFreeEx(processInfo.hProcess, remotePath, 0, MEM_RELEASE);
+
+    if (!gotExitCode) {
+        PrintLastError("GetExitCodeThread");
+        TerminateProcess(processInfo.hProcess, 1);
+        CloseHandle(processInfo.hThread);
+        CloseHandle(processInfo.hProcess);
+        return 1;
+    }
+    if (loadResult == 0) {
+        printf("ERRO: LoadLibraryA nao conseguiu carregar maxpayne-mp.dll.\n");
+        TerminateProcess(processInfo.hProcess, 1);
+        CloseHandle(processInfo.hThread);
+        CloseHandle(processInfo.hProcess);
+        return 1;
+    }
+
+    printf("DLL injetada com sucesso. PID: %lu\n", processInfo.dwProcessId);
+    CloseHandle(processInfo.hThread);
+    CloseHandle(processInfo.hProcess);
 
     return 0;
 }

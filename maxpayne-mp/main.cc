@@ -32,6 +32,8 @@ DWORD WINAPI MainThread(LPVOID) {
 
     // misc
     CrashInformer::Initialize();
+
+	printf("                      maxpayne-mp\n");
     return 0;
 }
 

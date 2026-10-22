@@ -6,7 +6,7 @@
 #include <psapi.h>
 #include <shellapi.h>
 
-#include "../dllmain.h"
+#include "../main.hh"
 
 #pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "psapi.lib")
