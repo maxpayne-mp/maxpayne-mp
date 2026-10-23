@@ -52,3 +52,9 @@ Testing/
 **/obj/
 **/out/
 *.lnk
+
+build/
+Release/
+Debug/
+RelWithDebInfo/
+MinSizeRel/
