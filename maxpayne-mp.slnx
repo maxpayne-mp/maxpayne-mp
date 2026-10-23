@@ -1,9 +1,0 @@
-<Solution>
-  <Configurations>
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
-  <Project Path="maxpayne-injector/maxpayne-injector.vcxproj" Id="dd4963fa-439a-4452-8ce3-b29a43117604" />
-  <Project Path="maxpayne-mp/maxpayne-mp.vcxproj" Id="4795e4cf-63c1-4830-8369-34fd336c30ff" />
-  <Project Path="maxpayne-server/maxpayne-server.vcxproj" Id="47a8a398-d1d7-4bcc-9c04-774bf6b0d82a" />
-</Solution>
