@@ -24,16 +24,19 @@
 
 #include "lib/CrashInformer.h"
 
-
+#include "game/patches/fastboot.hh"
 
 DWORD WINAPI MainThread(LPVOID) {
-    AllocConsole();
-    freopen("CONOUT$", "w", stdout);
+    //AllocConsole();
+    //freopen("CONOUT$", "w", stdout);
 
-    // misc
     CrashInformer::Initialize();
 
-	printf("                      maxpayne-mp\n");
+    //      PATCHES 
+    // --------------------------------------------------------------
+    PATCHES::FASTBOOT::Install();
+
+    //
     return 0;
 }
 
