@@ -17,6 +17,7 @@ namespace PATCHES
             constexpr uintptr_t addrDeveloperKeys = 0x8A6489;
             constexpr uintptr_t addrNoProfile = 0x8A6482;
             constexpr uintptr_t addrNoDialog = 0x867AFC;
+            constexpr uintptr_t addrScreenshot = 0x8A6481;
 
             constexpr uintptr_t addrCALL_WINDOW_ARGS_RVA = 0xA67A; // 0x40A67A - 0x400000;
         }
@@ -27,16 +28,21 @@ namespace PATCHES
 
         void Install()
         {
+            using namespace ADDRESS;
+
             // Skip parser of window args
             uintptr_t base = reinterpret_cast<uintptr_t>(GetModuleHandleA(nullptr));
-            uintptr_t addr = base + ADDRESS::addrCALL_WINDOW_ARGS_RVA;
+            uintptr_t addr = base + addrCALL_WINDOW_ARGS_RVA;
             PATCH(addr, 0x90, 5);
 
-            *reinterpret_cast<BYTE*>(ADDRESS::addrDeveloper)     = 1;   // active console
-            *reinterpret_cast<BYTE*>(ADDRESS::addrSkipStartup)   = 1;   // skip movie
-            *reinterpret_cast<BYTE*>(ADDRESS::addrDeveloperKeys) = 1;   // page up muda de skin, insert de cenario, c = cam mode, F11 - INFORMACOES
-            *reinterpret_cast<BYTE*>(ADDRESS::addrNoProfile)     = 1;   // no profile
-            *reinterpret_cast<BYTE*>(ADDRESS::addrNoDialog)      = 0;   // no dialog
+            *reinterpret_cast<BYTE*>(addrDeveloper)     = 1;   // active console
+            *reinterpret_cast<BYTE*>(addrSkipStartup)   = 1;   // skip movie
+            *reinterpret_cast<BYTE*>(addrDeveloperKeys) = 1;   // page up muda de skin, insert de cenario, c = cam mode, F11 - INFORMACOES
+            *reinterpret_cast<BYTE*>(addrNoProfile)     = 1;   // no profile
+            *reinterpret_cast<BYTE*>(addrNoDialog)      = 0;   // no dialog
+            *reinterpret_cast<BYTE*>(addrScreenshot)    = 1;   // active screenshot F8
+
+            OutputDebugString("PATCHES::FASTBOOT::Install()\n");
         }
     }
 }
