@@ -1,10 +1,10 @@
 @echo off
 setlocal
 set "ROOT=%~dp0"
-set "DESTINO=C:\Users\pituxo\Downloads\Max-Payne-SteamRIP.com\Max Payne\maxpayne-mp"
-set "DLL=%ROOT%maxpayne-mp\Release\maxpayne-mp.dll"
-set "LAUNCHER=%ROOT%maxpayne-injector\Release\maxpayne-launcher.exe"
-set "SERVER=%ROOT%maxpayne-server\Release\maxpayne-server.exe"
+set "DESTINO=C:\Users\pituxo\Documents\maxpaynegame\Max-Payne-SteamRIP.com\Max Payne\maxpayne-mp"
+set "DLL=%ROOT%\Release\maxpayne-mp.dll"
+set "LAUNCHER=%ROOT%\Release\maxpayne-launcher.exe"
+set "SERVER=%ROOT%\Release\maxpayne-server.exe"
 
 if not exist "%DESTINO%" mkdir "%DESTINO%"
 if not exist "%DESTINO%" (
