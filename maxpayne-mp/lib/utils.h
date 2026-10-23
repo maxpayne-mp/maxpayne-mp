@@ -1,6 +1,24 @@
 #pragma once
 #include "../main.hh"
 
+#undef OutputDebugString
+//#define OutputDebugString(a, ...) NULL
+//#define OutputDebugString(a, ...) printf(a, ##__VA_ARGS__)
+static inline const char* _Timestamp()
+{
+    static char buf[16];
+    SYSTEMTIME st;
+    GetLocalTime(&st);
+    sprintf_s(buf, sizeof(buf), "[%02d:%02d:%02d] ",
+              st.wHour, st.wMinute, st.wSecond);
+    return buf;
+}
+
+#define OutputDebugString(fmt, ...) \
+    printf("%s" fmt, _Timestamp(), ##__VA_ARGS__)
+
+//
+
 #define NAKED __declspec(naked)
 #define EXCEPTION_SDK ( MyExceptionFilter(GetExceptionInformation()) )
 

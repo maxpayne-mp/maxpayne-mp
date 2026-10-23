@@ -25,16 +25,18 @@
 #include "lib/CrashInformer.h"
 
 #include "game/patches/fastboot.hh"
+#include "game/patches/keys.hh"
 
 DWORD WINAPI MainThread(LPVOID) {
-    //AllocConsole();
-    //freopen("CONOUT$", "w", stdout);
+    AllocConsole();
+    freopen("CONOUT$", "w", stdout);
 
     CrashInformer::Initialize();
 
     //      PATCHES 
     // --------------------------------------------------------------
     PATCHES::FASTBOOT::Install();
+    PATCHES::KEYS::Install();
 
     //
     return 0;
