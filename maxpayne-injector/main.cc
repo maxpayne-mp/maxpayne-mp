@@ -89,7 +89,6 @@ int main() {
         return 1;
     }
 
-    Sleep(2000);
 
     const SIZE_T dllPathSize = dllPath.size() + 1;
     LPVOID remotePath = VirtualAllocEx(
