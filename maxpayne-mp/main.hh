@@ -2,7 +2,8 @@
 
 #define PROJECT_NAME "maxpayne-mp"
 #define PROJECT_VERSION "0.0.1"
-#define PROJECT_REPORT_CRASH "google.com"
+
+#define VALIDATE_VERSION_TESTS // se definida, valida algumas coisas do jogo, que podem impedir o mod de funcionar corretamente, como versão do jogo, checksum e build.
 
 #define WIN32_LEAN_AND_MEAN
 #include <iostream>

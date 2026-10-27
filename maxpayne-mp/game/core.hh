@@ -15,6 +15,8 @@ namespace CORE
     {
         constexpr const auto addrAddReceiver    = 0x478D00;
         constexpr const auto addrVersion        = 0x7CB730;
+        constexpr const auto addrBuild          = 0x40A80E + 0x3EE;
+
     }
 
     inline void* g_pGameMode = nullptr;
@@ -108,9 +110,27 @@ namespace CORE
             CrashInformer::ShowError("Unsupported game version. Expected 1.05, got %s", version);
             return;
         }
-        if(checksum("E0D6F82B002791391749FE72FDF855EC76EEE0719F0500E65016A48E151498D5") == false) {
-            return;
-        }
+ 
+        #ifdef VALIDATE_VERSION_TESTS
+            if(checksum("E0D6F82B002791391749FE72FDF855EC76EEE0719F0500E65016A48E151498D5")) {
+                OutputDebugString("Game checksum verified successfully.\n");
+            }
+
+            uint8_t opcode = *reinterpret_cast<uint8_t*>(addrBuild);
+            uint8_t imm8   = *reinterpret_cast<uint8_t*>(addrBuild + 1);
+            uint32_t imm32 = *reinterpret_cast<uint32_t*>(addrBuild + 1);
+
+            // 171 in game
+            // 69 in dialog
+            if (imm8 == 171 || imm8 == 69) {
+                OutputDebugString("Game build verified successfully.\n");
+            } else {
+                char buf[128];
+                sprintf_s(buf, "Unsupported 'BUILD %d' version. (0x%X) operation code=0x%02X", (int)imm8, (unsigned)addrBuild, opcode);
+                CrashInformer::ShowError("%s", buf);
+                return;
+            }
+        #endif
 
         g_AddReceiver = safetyhook::create_inline((void*)addrAddReceiver, AddReceiver_Hook);
         original_AddReceiver = g_AddReceiver.original<AddReceiverFn>();

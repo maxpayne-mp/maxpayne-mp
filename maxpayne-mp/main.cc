@@ -21,7 +21,6 @@
 
 #include "main.hh"
 
-
 #include "lib/CrashInformer.h"
 
 #include "game/core.hh" 
