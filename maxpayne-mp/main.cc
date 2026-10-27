@@ -24,8 +24,42 @@
 
 #include "lib/CrashInformer.h"
 
+#include "game/core.hh" 
+#include "game/console.hh"
+#include "game/script.hh"
+
 #include "game/patches/fastboot.hh"
 #include "game/patches/keys.hh"
+
+static DWORD WINAPI HotkeyThread(LPVOID)
+{
+    bool wasDown = false;
+    while (true)
+    {
+        const bool down = (GetAsyncKeyState(VK_F1) & 0x8000) != 0;
+
+        if (down && !wasDown)
+        {
+            if (CORE::g_pGameMode == nullptr)
+                CONSOLE::Print("[CORE] g_pGameMode not captured yet. Run 'Dump' first.\n");
+        }
+        else if ( GetAsyncKeyState(VK_F3) & 0x8000 )
+        {
+            //SCRIPT::Run("MaxPayne_HUDMode->MPHM_PrintDirect( \"MaxPayne_SaveGameInterface\" );");
+            SCRIPT::Run("Dump");
+        }
+
+        wasDown = down;
+        Sleep(50);
+    }
+    return 0;
+}
+
+void Install()
+{
+    HANDLE h = CreateThread(nullptr, 0, HotkeyThread, nullptr, 0, nullptr);
+    if (h) CloseHandle(h);
+}
 
 DWORD WINAPI MainThread(LPVOID) {
     AllocConsole();
@@ -33,12 +67,16 @@ DWORD WINAPI MainThread(LPVOID) {
 
     CrashInformer::Initialize();
 
+    CORE::Install();
+    // CONSOLE::Print("maxpayne-mp started!\n");
+
     //      PATCHES 
     // --------------------------------------------------------------
     PATCHES::FASTBOOT::Install();
     PATCHES::KEYS::Install();
 
     //
+    Install();
     return 0;
 }
 
