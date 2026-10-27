@@ -18,6 +18,7 @@ namespace PATCHES
             constexpr uintptr_t addrNoProfile = 0x8A6482;
             constexpr uintptr_t addrNoDialog = 0x867AFC;
             constexpr uintptr_t addrScreenshot = 0x8A6481;
+            constexpr uintptr_t addrWindow = 0x8A6480;
 
             constexpr uintptr_t addrCALL_WINDOW_ARGS_RVA = 0xA67A; // 0x40A67A - 0x400000;
         }
@@ -38,9 +39,10 @@ namespace PATCHES
             *reinterpret_cast<BYTE*>(addrDeveloper)     = 1;   // active console
             *reinterpret_cast<BYTE*>(addrSkipStartup)   = 1;   // skip movie
             *reinterpret_cast<BYTE*>(addrDeveloperKeys) = 1;   // page up muda de skin, insert de cenario, c = cam mode, F11 - INFORMACOES
-            *reinterpret_cast<BYTE*>(addrNoProfile)     = 1;   // no profile
+            // *reinterpret_cast<BYTE*>(addrNoProfile)     = 1;   // no profile
             *reinterpret_cast<BYTE*>(addrNoDialog)      = 0;   // no dialog
             *reinterpret_cast<BYTE*>(addrScreenshot)    = 1;   // active screenshot F8
+            *reinterpret_cast<BYTE*>(addrWindow)        = 1;   // active window
 
             OutputDebugString("PATCHES::FASTBOOT::Install()\n");
         }
