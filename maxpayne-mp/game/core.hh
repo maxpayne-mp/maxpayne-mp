@@ -9,28 +9,18 @@
 #include <wincrypt.h>
 #pragma comment(lib, "advapi32.lib")
 
+
 namespace CORE
 {
     namespace ADDRESS
     {
-        constexpr const auto addrAddReceiver    = 0x478D00;
+        constexpr const auto addrWindowName     = 0x866F78;
         constexpr const auto addrVersion        = 0x7CB730;
         constexpr const auto addrBuild          = 0x40A80E + 0x3EE;
 
     }
 
-    inline void* g_pGameMode = nullptr;
 
-    using AddReceiverFn = int(__thiscall*)(void* self);
-    inline AddReceiverFn original_AddReceiver = nullptr;
-    inline SafetyHookInline g_AddReceiver;
-
-    inline int __fastcall AddReceiver_Hook(void* self, void* edx)
-    {
-        if (CORE::g_pGameMode == nullptr && self != nullptr)
-            CORE::g_pGameMode = self;          // self = MaxPayne_GameMode*
-        return original_AddReceiver(self);
-    }
 
     static bool checksum(const char* expectedSha256) {
         char exePath[MAX_PATH] = {};
@@ -100,10 +90,23 @@ namespace CORE
         return ok;
     }
 
+
     inline void Install()
     {
         using namespace ADDRESS;
 
+        // name
+        // -----------------------------------------------------------------------------------------------------
+        // Max Payne - Thu Jan 17 09:49:00 2002
+        // char* name = reinterpret_cast<const char*>(addrWindowName);
+        DWORD oldProtect = 0x0;
+        const std::string name = std::string("maxpayne-mp (") + std::to_string(MAXPAYNE_MAIOR_VERSAO) + "." + std::to_string(MAXPAYNE_MENOR_VERSAO) + ")";
+        VirtualProtect((void*)addrWindowName, 35 + 1, PAGE_EXECUTE_READWRITE, &oldProtect);
+        memcpy((void*)addrWindowName, name.c_str(), 35 + 1);
+        VirtualProtect((void*)addrWindowName, 35 + 1, oldProtect, &oldProtect);
+
+        // version
+        // -----------------------------------------------------------------------------------------------------
         const char* version = reinterpret_cast<const char*>(addrVersion);
         if (strcmp(version, "1.05")) {
             OutputDebugString("Unsupported game version. Expected 1.05, got ");
@@ -111,6 +114,8 @@ namespace CORE
             return;
         }
  
+        // checksum
+        // -----------------------------------------------------------------------------------------------------
         #ifdef VALIDATE_VERSION_TESTS
             if(checksum("E0D6F82B002791391749FE72FDF855EC76EEE0719F0500E65016A48E151498D5")) {
                 OutputDebugString("Game checksum verified successfully.\n");
@@ -132,7 +137,6 @@ namespace CORE
             }
         #endif
 
-        g_AddReceiver = safetyhook::create_inline((void*)addrAddReceiver, AddReceiver_Hook);
-        original_AddReceiver = g_AddReceiver.original<AddReceiverFn>();
+        OutputDebugString("CORE::Install()\n");
     }
 }
