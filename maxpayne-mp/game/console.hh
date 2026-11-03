@@ -25,15 +25,6 @@ namespace CONSOLE
     inline void* addrCTX_Mother = nullptr;
     inline void* g_XConsoleMode = nullptr;
 
-    inline void Log(const char* fmt, ...)
-    {
-        va_list ap; va_start(ap, fmt);
-        vprintf(fmt, ap);
-        va_end(ap);
-        printf("\n");
-        fflush(stdout);
-    }
-
     using ParserFn = char(__fastcall*)(char* self, int edx, int tokens);
     inline ParserFn original_Parser = nullptr;
     inline SafetyHookInline g_Parser;
@@ -48,8 +39,10 @@ namespace CONSOLE
 
         char r = original_Parser(self, edx, tokens);
 
-        Log("PARSER: self=0x%p tokens=0x%p ctx=0x%p ret=0x%02X",
-            self, (void*)tokens, addrCTX_Mother, (unsigned)r);
+        #ifdef CONSOLE_DEBUG
+            OutputDebugString("PARSER: self=0x%p tokens=0x%p ctx=0x%p ret=0x%02X",
+                self, (void*)tokens, addrCTX_Mother, (unsigned)r);
+        #endif
         return r;
     }
 
@@ -66,13 +59,8 @@ namespace CONSOLE
             ret = original_Console_Mother(self, ctx);
 
         #ifdef CONSOLE_DEBUG
-        {
-            char buf[512];
-            _snprintf_s(buf, sizeof(buf), _TRUNCATE,
-                "CONSOLE::Console_Mother_Hook(\"%s\", 0x%p); // return address 0x%p\n",
+            OutputDebugString("CONSOLE::Console_Mother_Hook(\"%s\", 0x%p); // return address 0x%p\n",
                 self, (void*)ctx, returnaddress_);
-            OutputDebugStringA(buf);
-        }
         #endif
 
         return ret;
@@ -85,7 +73,9 @@ namespace CONSOLE
     int __fastcall Sub51B6A0_Hook(int a1, void* a2, int a3, int a4)
     {
         int r = original_Sub51B6A0(a1, a2, a3, a4);
-        Log("51B6A0: a1=0x%p a2=0x%p a3=0x%p a4=0x%p", (void*)a1, a2, (void*)a3, (void*)a4);
+        #ifdef CONSOLE_DEBUG
+            OutputDebugString("51B6A0: a1=0x%p a2=0x%p a3=0x%p a4=0x%p", (void*)a1, a2, (void*)a3, (void*)a4);
+        #endif
         return r;
     }
 
@@ -95,7 +85,9 @@ namespace CONSOLE
 
     int __fastcall Sub51FDF0_Hook(void* self, void* edx)
     {
-        Log("51FDF0: this=0x%p", self);
+        #ifdef CONSOLE_DEBUG
+            OutputDebugString("51FDF0: this=0x%p", self);
+        #endif
         return original_Sub51FDF0(self, edx);
     }
 
@@ -107,12 +99,12 @@ namespace CONSOLE
     {
         if (self) g_XConsoleMode = self;
         int r = original_Keyboard(self, edx, a2);
-        Log("KEYBOARD: self=0x%p a2=0x%p", self, (void*)a2);
+        #ifdef CONSOLE_DEBUG
+            OutputDebugString("KEYBOARD: self=0x%p a2=0x%p", self, (void*)a2);
+        #endif
         return r;
     }
     
-
-
     char* Console_Mother(const char* cmd, int ctx = -1)
     {
         __try
@@ -120,15 +112,21 @@ namespace CONSOLE
             if (ctx == -1)
             {
                 ctx = (int)addrCTX_Mother;
-                if (!ctx) { Log("MOTHER publico: ctx nulo"); return nullptr; }
+                if (!ctx) 
+                { 
+                    #ifdef CONSOLE_DEBUG
+                        OutputDebugString("MOTHER: ctx nulo"); 
+                    #endif
+                    return nullptr; 
+                }
             }
-            Log("MOTHER publico: cmd=\"%s\" ctx=0x%p", cmd, (void*)ctx);
+            // OutputDebugString("MOTHER publico: cmd=\"%s\" ctx=0x%p", cmd, (void*)ctx);
             using Fn = char*(__fastcall*)(const char*, int);
             return reinterpret_cast<Fn>(ADDRESS::addrMother)(cmd, ctx);
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
-            Log("MOTHER publico: EXCEPTION cmd=\"%s\"", cmd);
+            OutputDebugString("CONSOLE MOTHER: EXCEPTION cmd=\"%s\"", cmd);
         }
         return nullptr;
     }
@@ -139,7 +137,9 @@ namespace CONSOLE
         va_list va; va_start(va, format);
         vsnprintf(buf, sizeof(buf), format, va);
         va_end(va);
-        printf("%s\n", buf);
+        #ifdef CONSOLE_DEBUG
+        OutputDebugString("%s\n", buf);
+        #endif 
         fflush(stdout);
         using Fn = int(__cdecl*)(const char*, ...);
         return reinterpret_cast<Fn>(ADDRESS::addrDrawText)("%s", buf);
@@ -149,24 +149,19 @@ namespace CONSOLE
     {
         g_Parser = safetyhook::create_inline((void*)ADDRESS::addrParser, Parser_Hook);
         original_Parser = g_Parser.original<ParserFn>();
-        Log("INSTALL parser: orig=0x%p", (void*)original_Parser);
 
         g_Console_Mother = safetyhook::create_inline((void*)ADDRESS::addrMother, Console_Mother_Hook);
         original_Console_Mother = g_Console_Mother.original<Console_MotherFn>();
-        Log("INSTALL mother: orig=0x%p", (void*)original_Console_Mother);
 
         g_Sub51B6A0 = safetyhook::create_inline((void*)ADDRESS::addrSub51B6A0, Sub51B6A0_Hook);
         original_Sub51B6A0 = g_Sub51B6A0.original<Sub51B6A0Fn>();
-        Log("INSTALL 51B6A0: orig=0x%p", (void*)original_Sub51B6A0);
 
         g_Sub51FDF0 = safetyhook::create_inline((void*)ADDRESS::addrSub51FDF0, Sub51FDF0_Hook);
         original_Sub51FDF0 = g_Sub51FDF0.original<Sub51FDF0Fn>();
-        Log("INSTALL 51FDF0: orig=0x%p", (void*)original_Sub51FDF0);
 
         g_Keyboard = safetyhook::create_inline((void*)ADDRESS::addrKeyboard, Keyboard_Hook);
         original_Keyboard = g_Keyboard.original<KeyboardFn>();
-        Log("INSTALL keyboard: orig=0x%p", (void*)original_Keyboard);
 
-        Log("CONSOLE::Install() done");
+        OutputDebugString("CONSOLE::Install() done");
     }
 }
