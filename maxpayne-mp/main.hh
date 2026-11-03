@@ -1,9 +1,11 @@
 #pragma once
 
-#define PROJECT_NAME "maxpayne-mp"
-#define PROJECT_VERSION "0.0.1"
 
-#define VALIDATE_VERSION_TESTS // se definida, valida algumas coisas do jogo, que podem impedir o mod de funcionar corretamente, como versão do jogo, checksum e build.
+
+// version
+#define MAXPAYNE_MAIOR_VERSAO 1
+#define MAXPAYNE_MENOR_VERSAO 05
+
 
 #define WIN32_LEAN_AND_MEAN
 #include <iostream>

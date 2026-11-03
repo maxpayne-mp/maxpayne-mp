@@ -44,10 +44,24 @@ void ClearConsole()
     SetConsoleCursorPosition(hConsole, { 0, 0 });
 }
 
-void PATCH_DATA(DWORD addr, BYTE* data, size_t size) 
+
+bool PATCH_DATA(uintptr_t addr, const BYTE* data, size_t size)
 {
-    DWORD oldProtect;
-    VirtualProtect((LPVOID)addr, size, PAGE_EXECUTE_READWRITE, &oldProtect);
-    memcpy((LPVOID)addr, data, size);
-    VirtualProtect((LPVOID)addr, size, oldProtect, &oldProtect);
+    if (addr == 0 || data == nullptr || size == 0)
+        return false;
+
+    void* destination = reinterpret_cast<void*>(addr);
+    DWORD oldProtect = 0;
+
+    if (!VirtualProtect(destination, size, PAGE_EXECUTE_READWRITE, &oldProtect))
+        return false;
+
+    std::memcpy(destination, data, size);
+
+    FlushInstructionCache(GetCurrentProcess(), destination, size);
+
+    DWORD ignored = 0;
+    BOOL restored = VirtualProtect(destination, size, oldProtect, &ignored);
+
+    return restored != FALSE;
 }

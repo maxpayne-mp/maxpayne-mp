@@ -41,7 +41,7 @@ namespace PATCHES
             *reinterpret_cast<BYTE*>(addrDeveloperKeys) = 1;   // page up muda de skin, insert de cenario, c = cam mode, F11 - INFORMACOES
             // *reinterpret_cast<BYTE*>(addrNoProfile)     = 1;   // no profile
             *reinterpret_cast<BYTE*>(addrNoDialog)      = 0;   // no dialog
-            *reinterpret_cast<BYTE*>(addrScreenshot)    = 1;   // active screenshot F8
+            // *reinterpret_cast<BYTE*>(addrScreenshot)    = 1;   // active screenshot F8
             *reinterpret_cast<BYTE*>(addrWindow)        = 1;   // active window
 
             OutputDebugString("PATCHES::FASTBOOT::Install()\n");

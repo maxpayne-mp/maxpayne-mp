@@ -16,6 +16,9 @@
 
 */
 
+#define VALIDATE_VERSION_TESTS // se definida, valida algumas coisas do jogo, que podem impedir o mod de funcionar corretamente, como versão do jogo, checksum e build.
+#define CONSOLE_DEBUG
+
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "winmm.lib")
 
@@ -29,6 +32,7 @@
 
 #include "game/patches/fastboot.hh"
 #include "game/patches/keys.hh"
+#include "game/patches/menu.hh"
 
 static DWORD WINAPI HotkeyThread(LPVOID)
 {
@@ -39,13 +43,50 @@ static DWORD WINAPI HotkeyThread(LPVOID)
 
         if (down && !wasDown)
         {
-            if (CORE::g_pGameMode == nullptr)
-                CONSOLE::Print("[CORE] g_pGameMode not captured yet. Run 'Dump' first.\n");
+            CONSOLE::Print("[CORE] g_pGameMode not captured yet. Run 'Dump' first.\n");
+        }
+        else if ( GetAsyncKeyState(VK_F4) & 0x8000 )
+        {
+        }
+        else if ( GetAsyncKeyState(VK_F5) & 0x8000 )
+        {
+            SCRIPT::Execute("player->C_Jump(5);");
+            // CONSOLE::Print("[gay] you is 'gay'.\n");
         }
         else if ( GetAsyncKeyState(VK_F3) & 0x8000 )
         {
-            //SCRIPT::Run("MaxPayne_HUDMode->MPHM_PrintDirect( \"MaxPayne_SaveGameInterface\" );");
-            SCRIPT::Run("Dump");
+            /*
+            SCRIPT::Run("player->c_pickupweapon ( leadpipe );");
+            SCRIPT::Run("player->c_setinfiniteammo( leadpipe, true);");
+            SCRIPT::Run("player->c_pickupweapon ( baseballbat );");
+            SCRIPT::Run("player->c_setinfiniteammo( baseballbat, true);");
+            SCRIPT::Run("player->c_pickupweapon ( beretta );");
+            SCRIPT::Run("player->c_pickupweapon ( berettadual );");
+            SCRIPT::Run("player->c_pickupammo( berettadual, 1000 );");
+            SCRIPT::Run("player->c_pickupweapon ( deserteagle );");
+            SCRIPT::Run("player->c_pickupammo( deserteagle, 1000 );");
+            SCRIPT::Run("player->c_pickupweapon ( sawedshotgun );");
+            SCRIPT::Run("player->c_pickupammo( sawedshotgun, 1000 );");
+            SCRIPT::Run("player->c_pickupweapon ( pumpshotgun );");
+            SCRIPT::Run("player->c_pickupammo( pumpshotgun, 1000 );");
+            SCRIPT::Run("player->c_pickupweapon ( ingram );");
+            SCRIPT::Run("player->c_pickupweapon ( ingramdual );");
+            SCRIPT::Run("player->c_pickupammo( ingramdual, 1000 );");
+            SCRIPT::Run("player->c_pickupweapon ( sniper );");
+            SCRIPT::Run("player->c_pickupammo(sniper, 1000 );");
+            SCRIPT::Run("player->c_pickupweapon ( mp5 );");
+            SCRIPT::Run("player->c_pickupammo( mp5, 1000 );");
+            SCRIPT::Run("player->c_pickupweapon ( jackhammer );");
+            SCRIPT::Run("player->c_pickupammo( jackhammer, 1000 );");
+            SCRIPT::Run("player->c_pickupweapon ( m79 );");
+            SCRIPT::Run("player->c_pickupammo( m79, 20 );");
+            SCRIPT::Run("player->c_pickupweapon ( grenade );");
+            SCRIPT::Run("player->c_pickupammo( grenade, 20 );");
+            SCRIPT::Run("player->c_pickupweapon ( molotov );");
+            SCRIPT::Run("player->c_pickupammo( molotov, 20 );");
+            SCRIPT::Run("player->c_pickupweapon ( painkiller );");
+            SCRIPT::Run("player->c_pickupammo( painkiller, 20 );");
+            */
         }
 
         wasDown = down;
@@ -67,10 +108,12 @@ DWORD WINAPI MainThread(LPVOID) {
     CrashInformer::Initialize();
 
     CORE::Install();
+    CONSOLE::Install();
     // CONSOLE::Print("maxpayne-mp started!\n");
 
     //      PATCHES 
     // --------------------------------------------------------------
+    //PATCHES::MENU::Install();
     PATCHES::FASTBOOT::Install();
     PATCHES::KEYS::Install();
 
