@@ -14,10 +14,15 @@
     - Description:
         This is the server of the maxpayne-mp project.
 
+    -----------------------------------------------------------------------------------------
+
+    o hook do player, so presta quando da dump, preciso verificar se real é o endereço do player, se for, preciso ver algo que
+    possa comprovar quando o player esta em jogo, fora isso preciso saber o estado, tipo, em pausa, em menu, em jogo, etc.
+
 */
 
 #define VALIDATE_VERSION_TESTS // se definida, valida algumas coisas do jogo, que podem impedir o mod de funcionar corretamente, como versão do jogo, checksum e build.
-#define CONSOLE_DEBUG
+// #define CONSOLE_DEBUG
 
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "winmm.lib")
@@ -29,6 +34,7 @@
 #include "game/core.hh" 
 #include "game/console.hh"
 #include "game/script.hh"
+#include "game/player.hh"
 
 #include "game/patches/fastboot.hh"
 #include "game/patches/keys.hh"
@@ -55,38 +61,36 @@ static DWORD WINAPI HotkeyThread(LPVOID)
         }
         else if ( GetAsyncKeyState(VK_F3) & 0x8000 )
         {
-            /*
-            SCRIPT::Run("player->c_pickupweapon ( leadpipe );");
-            SCRIPT::Run("player->c_setinfiniteammo( leadpipe, true);");
-            SCRIPT::Run("player->c_pickupweapon ( baseballbat );");
-            SCRIPT::Run("player->c_setinfiniteammo( baseballbat, true);");
-            SCRIPT::Run("player->c_pickupweapon ( beretta );");
-            SCRIPT::Run("player->c_pickupweapon ( berettadual );");
-            SCRIPT::Run("player->c_pickupammo( berettadual, 1000 );");
-            SCRIPT::Run("player->c_pickupweapon ( deserteagle );");
-            SCRIPT::Run("player->c_pickupammo( deserteagle, 1000 );");
-            SCRIPT::Run("player->c_pickupweapon ( sawedshotgun );");
-            SCRIPT::Run("player->c_pickupammo( sawedshotgun, 1000 );");
-            SCRIPT::Run("player->c_pickupweapon ( pumpshotgun );");
-            SCRIPT::Run("player->c_pickupammo( pumpshotgun, 1000 );");
-            SCRIPT::Run("player->c_pickupweapon ( ingram );");
-            SCRIPT::Run("player->c_pickupweapon ( ingramdual );");
-            SCRIPT::Run("player->c_pickupammo( ingramdual, 1000 );");
-            SCRIPT::Run("player->c_pickupweapon ( sniper );");
-            SCRIPT::Run("player->c_pickupammo(sniper, 1000 );");
-            SCRIPT::Run("player->c_pickupweapon ( mp5 );");
-            SCRIPT::Run("player->c_pickupammo( mp5, 1000 );");
-            SCRIPT::Run("player->c_pickupweapon ( jackhammer );");
-            SCRIPT::Run("player->c_pickupammo( jackhammer, 1000 );");
-            SCRIPT::Run("player->c_pickupweapon ( m79 );");
-            SCRIPT::Run("player->c_pickupammo( m79, 20 );");
-            SCRIPT::Run("player->c_pickupweapon ( grenade );");
-            SCRIPT::Run("player->c_pickupammo( grenade, 20 );");
-            SCRIPT::Run("player->c_pickupweapon ( molotov );");
-            SCRIPT::Run("player->c_pickupammo( molotov, 20 );");
-            SCRIPT::Run("player->c_pickupweapon ( painkiller );");
-            SCRIPT::Run("player->c_pickupammo( painkiller, 20 );");
-            */
+            SCRIPT::Execute("player->c_pickupweapon ( leadpipe );");
+            SCRIPT::Execute("player->c_setinfiniteammo( leadpipe, true);");
+            SCRIPT::Execute("player->c_pickupweapon ( baseballbat );");
+            SCRIPT::Execute("player->c_setinfiniteammo( baseballbat, true);");
+            SCRIPT::Execute("player->c_pickupweapon ( beretta );");
+            SCRIPT::Execute("player->c_pickupweapon ( berettadual );");
+            SCRIPT::Execute("player->c_pickupammo( berettadual, 1000 );");
+            SCRIPT::Execute("player->c_pickupweapon ( deserteagle );");
+            SCRIPT::Execute("player->c_pickupammo( deserteagle, 1000 );");
+            SCRIPT::Execute("player->c_pickupweapon ( sawedshotgun );");
+            SCRIPT::Execute("player->c_pickupammo( sawedshotgun, 1000 );");
+            SCRIPT::Execute("player->c_pickupweapon ( pumpshotgun );");
+            SCRIPT::Execute("player->c_pickupammo( pumpshotgun, 1000 );");
+            SCRIPT::Execute("player->c_pickupweapon ( ingram );");
+            SCRIPT::Execute("player->c_pickupweapon ( ingramdual );");
+            SCRIPT::Execute("player->c_pickupammo( ingramdual, 1000 );");
+            SCRIPT::Execute("player->c_pickupweapon ( sniper );");
+            SCRIPT::Execute("player->c_pickupammo(sniper, 1000 );");
+            SCRIPT::Execute("player->c_pickupweapon ( mp5 );");
+            SCRIPT::Execute("player->c_pickupammo( mp5, 1000 );");
+            SCRIPT::Execute("player->c_pickupweapon ( jackhammer );");
+            SCRIPT::Execute("player->c_pickupammo( jackhammer, 1000 );");
+            SCRIPT::Execute("player->c_pickupweapon ( m79 );");
+            SCRIPT::Execute("player->c_pickupammo( m79, 20 );");
+            SCRIPT::Execute("player->c_pickupweapon ( grenade );");
+            SCRIPT::Execute("player->c_pickupammo( grenade, 20 );");
+            SCRIPT::Execute("player->c_pickupweapon ( molotov );");
+            SCRIPT::Execute("player->c_pickupammo( molotov, 20 );");
+            SCRIPT::Execute("player->c_pickupweapon ( painkiller );"); // medicamento
+            SCRIPT::Execute("player->c_pickupammo( painkiller, 20 );"); // medicamento
         }
 
         wasDown = down;
@@ -109,6 +113,7 @@ DWORD WINAPI MainThread(LPVOID) {
 
     CORE::Install();
     CONSOLE::Install();
+    PLAYER::Install();
     // CONSOLE::Print("maxpayne-mp started!\n");
 
     //      PATCHES 

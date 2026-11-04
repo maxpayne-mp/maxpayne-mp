@@ -9,7 +9,7 @@
 #include <array>
 #include "lib/utils.h"
 
-#define CONSOLE_DEBUG
+
 namespace CONSOLE
 {
     namespace ADDRESS
@@ -40,7 +40,7 @@ namespace CONSOLE
         char r = original_Parser(self, edx, tokens);
 
         #ifdef CONSOLE_DEBUG
-            OutputDebugString("PARSER: self=0x%p tokens=0x%p ctx=0x%p ret=0x%02X",
+            OutputDebugString("PARSER: self=0x%p tokens=0x%p ctx=0x%p ret=0x%02X\n",
                 self, (void*)tokens, addrCTX_Mother, (unsigned)r);
         #endif
         return r;
@@ -74,7 +74,7 @@ namespace CONSOLE
     {
         int r = original_Sub51B6A0(a1, a2, a3, a4);
         #ifdef CONSOLE_DEBUG
-            OutputDebugString("51B6A0: a1=0x%p a2=0x%p a3=0x%p a4=0x%p", (void*)a1, a2, (void*)a3, (void*)a4);
+            OutputDebugString("51B6A0: a1=0x%p a2=0x%p a3=0x%p a4=0x%p\n", (void*)a1, a2, (void*)a3, (void*)a4);
         #endif
         return r;
     }
@@ -86,7 +86,7 @@ namespace CONSOLE
     int __fastcall Sub51FDF0_Hook(void* self, void* edx)
     {
         #ifdef CONSOLE_DEBUG
-            OutputDebugString("51FDF0: this=0x%p", self);
+            OutputDebugString("51FDF0: this=0x%p\n", self);
         #endif
         return original_Sub51FDF0(self, edx);
     }
@@ -100,7 +100,7 @@ namespace CONSOLE
         if (self) g_XConsoleMode = self;
         int r = original_Keyboard(self, edx, a2);
         #ifdef CONSOLE_DEBUG
-            OutputDebugString("KEYBOARD: self=0x%p a2=0x%p", self, (void*)a2);
+            OutputDebugString("KEYBOARD: self=0x%p a2=0x%p\n", self, (void*)a2);
         #endif
         return r;
     }
@@ -115,7 +115,7 @@ namespace CONSOLE
                 if (!ctx) 
                 { 
                     #ifdef CONSOLE_DEBUG
-                        OutputDebugString("MOTHER: ctx nulo"); 
+                        OutputDebugString("MOTHER: ctx nulo\n"); 
                     #endif
                     return nullptr; 
                 }
@@ -126,7 +126,7 @@ namespace CONSOLE
         }
         __except (EXCEPTION_EXECUTE_HANDLER)
         {
-            OutputDebugString("CONSOLE MOTHER: EXCEPTION cmd=\"%s\"", cmd);
+            OutputDebugString("CONSOLE MOTHER: EXCEPTION cmd=\"%s\"\n", cmd);
         }
         return nullptr;
     }
@@ -162,6 +162,6 @@ namespace CONSOLE
         g_Keyboard = safetyhook::create_inline((void*)ADDRESS::addrKeyboard, Keyboard_Hook);
         original_Keyboard = g_Keyboard.original<KeyboardFn>();
 
-        OutputDebugString("CONSOLE::Install() done");
+        OutputDebugString("CONSOLE::Install()\n");
     }
 }
