@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <cstring>
 #include "lib/utils.h"
+#include "game/script.hh"
 
 namespace TEXT
 {

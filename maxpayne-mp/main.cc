@@ -35,6 +35,7 @@
 #include "game/console.hh"
 #include "game/script.hh"
 #include "game/player.hh"
+#include "game/enemy.hh"
 #include "game/text.hh"
 
 #include "game/E2MFC.hh"
@@ -42,11 +43,21 @@
 #include "game/patches/fastboot.hh"
 #include "game/patches/keys.hh"
 #include "game/patches/menu.hh"
+static void* g_exampleText = nullptr;
+static void* g_exampleFont = nullptr;
+
 
 static DWORD WINAPI HotkeyThread(LPVOID)
 {
     using namespace E2MFC;
+    while (true)
+    {
+        if ((GetAsyncKeyState(VK_F3) & 0x8001) == 0x0001)
+        {
+        }
 
+        Sleep(50);
+    }
     return 0;
 }
 
@@ -62,10 +73,11 @@ DWORD WINAPI MainThread(LPVOID) {
 
     CrashInformer::Initialize();
 
-    E2MFC::Install();
     CORE::Install();
+    E2MFC::Install();
     CONSOLE::Install();
     PLAYER::Install();
+    ENEMY::Install();
     TEXT::Install();
 
     //      PATCHES 
