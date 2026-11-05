@@ -2,13 +2,9 @@
 
 #include <cstdarg>
 #include <cstdio>
-#include <cstdint>
 #include <intrin.h>
 #include <Windows.h>
-#include <vector>
-#include <array>
 #include "lib/utils.h"
-
 
 namespace CONSOLE
 {
@@ -131,6 +127,7 @@ namespace CONSOLE
         return nullptr;
     }
 
+
     int Print(const char* format, ...)
     {
         char buf[4096];
@@ -144,6 +141,7 @@ namespace CONSOLE
         using Fn = int(__cdecl*)(const char*, ...);
         return reinterpret_cast<Fn>(ADDRESS::addrDrawText)("%s", buf);
     }
+
 
     inline void Install()
     {

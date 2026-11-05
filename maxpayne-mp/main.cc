@@ -16,13 +16,13 @@
 
     -----------------------------------------------------------------------------------------
 
-    o hook do player, so presta quando da dump, preciso verificar se real é o endereço do player, se for, preciso ver algo que
-    possa comprovar quando o player esta em jogo, fora isso preciso saber o estado, tipo, em pausa, em menu, em jogo, etc.
-
 */
 
-#define VALIDATE_VERSION_TESTS // se definida, valida algumas coisas do jogo, que podem impedir o mod de funcionar corretamente, como versão do jogo, checksum e build.
+#define VALIDATE_VERSION_TESTS
 // #define CONSOLE_DEBUG
+#define E2MFC_DEBUG
+// #define PLAYER_DEBUG
+#define SCRIPT_EMBEDDED_DEBUG
 
 #pragma comment(lib, "ws2_32.lib")
 #pragma comment(lib, "winmm.lib")
@@ -35,6 +35,9 @@
 #include "game/console.hh"
 #include "game/script.hh"
 #include "game/player.hh"
+#include "game/text.hh"
+
+#include "game/E2MFC.hh"
 
 #include "game/patches/fastboot.hh"
 #include "game/patches/keys.hh"
@@ -42,60 +45,8 @@
 
 static DWORD WINAPI HotkeyThread(LPVOID)
 {
-    bool wasDown = false;
-    while (true)
-    {
-        const bool down = (GetAsyncKeyState(VK_F1) & 0x8000) != 0;
+    using namespace E2MFC;
 
-        if (down && !wasDown)
-        {
-            CONSOLE::Print("[CORE] g_pGameMode not captured yet. Run 'Dump' first.\n");
-        }
-        else if ( GetAsyncKeyState(VK_F4) & 0x8000 )
-        {
-        }
-        else if ( GetAsyncKeyState(VK_F5) & 0x8000 )
-        {
-            SCRIPT::Execute("player->C_Jump(5);");
-            // CONSOLE::Print("[gay] you is 'gay'.\n");
-        }
-        else if ( GetAsyncKeyState(VK_F3) & 0x8000 )
-        {
-            SCRIPT::Execute("player->c_pickupweapon ( leadpipe );");
-            SCRIPT::Execute("player->c_setinfiniteammo( leadpipe, true);");
-            SCRIPT::Execute("player->c_pickupweapon ( baseballbat );");
-            SCRIPT::Execute("player->c_setinfiniteammo( baseballbat, true);");
-            SCRIPT::Execute("player->c_pickupweapon ( beretta );");
-            SCRIPT::Execute("player->c_pickupweapon ( berettadual );");
-            SCRIPT::Execute("player->c_pickupammo( berettadual, 1000 );");
-            SCRIPT::Execute("player->c_pickupweapon ( deserteagle );");
-            SCRIPT::Execute("player->c_pickupammo( deserteagle, 1000 );");
-            SCRIPT::Execute("player->c_pickupweapon ( sawedshotgun );");
-            SCRIPT::Execute("player->c_pickupammo( sawedshotgun, 1000 );");
-            SCRIPT::Execute("player->c_pickupweapon ( pumpshotgun );");
-            SCRIPT::Execute("player->c_pickupammo( pumpshotgun, 1000 );");
-            SCRIPT::Execute("player->c_pickupweapon ( ingram );");
-            SCRIPT::Execute("player->c_pickupweapon ( ingramdual );");
-            SCRIPT::Execute("player->c_pickupammo( ingramdual, 1000 );");
-            SCRIPT::Execute("player->c_pickupweapon ( sniper );");
-            SCRIPT::Execute("player->c_pickupammo(sniper, 1000 );");
-            SCRIPT::Execute("player->c_pickupweapon ( mp5 );");
-            SCRIPT::Execute("player->c_pickupammo( mp5, 1000 );");
-            SCRIPT::Execute("player->c_pickupweapon ( jackhammer );");
-            SCRIPT::Execute("player->c_pickupammo( jackhammer, 1000 );");
-            SCRIPT::Execute("player->c_pickupweapon ( m79 );");
-            SCRIPT::Execute("player->c_pickupammo( m79, 20 );");
-            SCRIPT::Execute("player->c_pickupweapon ( grenade );");
-            SCRIPT::Execute("player->c_pickupammo( grenade, 20 );");
-            SCRIPT::Execute("player->c_pickupweapon ( molotov );");
-            SCRIPT::Execute("player->c_pickupammo( molotov, 20 );");
-            SCRIPT::Execute("player->c_pickupweapon ( painkiller );"); // medicamento
-            SCRIPT::Execute("player->c_pickupammo( painkiller, 20 );"); // medicamento
-        }
-
-        wasDown = down;
-        Sleep(50);
-    }
     return 0;
 }
 
@@ -111,10 +62,11 @@ DWORD WINAPI MainThread(LPVOID) {
 
     CrashInformer::Initialize();
 
+    E2MFC::Install();
     CORE::Install();
     CONSOLE::Install();
     PLAYER::Install();
-    // CONSOLE::Print("maxpayne-mp started!\n");
+    TEXT::Install();
 
     //      PATCHES 
     // --------------------------------------------------------------
@@ -122,7 +74,6 @@ DWORD WINAPI MainThread(LPVOID) {
     PATCHES::FASTBOOT::Install();
     PATCHES::KEYS::Install();
 
-    //
     Install();
     return 0;
 }

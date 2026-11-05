@@ -99,11 +99,11 @@ namespace CORE
         // -----------------------------------------------------------------------------------------------------
         // Max Payne - Thu Jan 17 09:49:00 2002
         // char* name = reinterpret_cast<const char*>(addrWindowName);
-        DWORD oldProtect = 0x0;
-        const std::string name = std::string("maxpayne-mp (") + std::to_string(MAXPAYNE_MAIOR_VERSAO) + "." + std::to_string(MAXPAYNE_MENOR_VERSAO) + ")";
-        VirtualProtect((void*)addrWindowName, 35 + 1, PAGE_EXECUTE_READWRITE, &oldProtect);
-        memcpy((void*)addrWindowName, name.c_str(), 35 + 1);
-        VirtualProtect((void*)addrWindowName, 35 + 1, oldProtect, &oldProtect);
+        // DWORD oldProtect = 0x0;
+        // const std::string name = std::string("maxpayne-mp (") + std::to_string(MAXPAYNE_MAIOR_VERSAO) + "." + std::to_string(MAXPAYNE_MENOR_VERSAO) + ")";
+        // VirtualProtect((void*)addrWindowName, 35 + 1, PAGE_EXECUTE_READWRITE, &oldProtect);
+        // memcpy((void*)addrWindowName, name.c_str(), 35 + 1);
+        // VirtualProtect((void*)addrWindowName, 35 + 1, oldProtect, &oldProtect);
 
         // version
         // -----------------------------------------------------------------------------------------------------
