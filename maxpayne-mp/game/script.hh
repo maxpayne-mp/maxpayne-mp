@@ -3,7 +3,6 @@
 #include <cstdarg>
 #include <cstdio>
 #include "lib/utils.h"
-
 #include "console.hh"
 
 namespace SCRIPT
@@ -46,6 +45,12 @@ namespace SCRIPT
         }
         return true;
     }
+
+    inline void Clear()
+    {
+        SCRIPT::Execute("X_ConsoleMode->CM_Clear( );");
+    }
+
 
     // TODO: 
     // constexpr const auto addrScriptRun = 0x51E7C0;
